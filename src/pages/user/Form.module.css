@@ -1,0 +1,25 @@
+.formPage{
+    height: 95vh;
+    width: 95vw;
+    margin: auto;
+    display: flex;
+}
+
+.left{
+    height: 90vh;
+    width: 50%;
+}
+
+.left img{
+    height: 100%;
+    width: 100%;
+    margin: auto;
+}
+
+.right{
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
