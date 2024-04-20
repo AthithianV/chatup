@@ -8,7 +8,7 @@ import { auth } from "../../firebase/firebase";
 
 const INITIAL_STATE = {
   phoneNumber: null,
-  user: { id: "+919597891364", name: "admin" },
+  user: { id: "+919597891364", name: "Athithian" },
   name: null,
   image: null,
   loader: false,
@@ -16,26 +16,23 @@ const INITIAL_STATE = {
   displayPhoneForm: true,
 };
 
-export const signUp = createAsyncThunk(
-  "user/signup",
-  async (phoneNumber, thunkAPI) => {
-    try {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, "sign-in-button", {
-        size: "invisible",
-      });
-    } catch (error) {
-      console.log(error);
-    }
-    await window.recaptchaVerifier.render();
-
-    window.confirmationResult = await signInWithPhoneNumber(
-      auth,
-      phoneNumber,
-      window.recaptchaVerifier
-    );
-    return phoneNumber;
+export const signUp = createAsyncThunk("user/signup", async (phoneNumber) => {
+  try {
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "sign-in-button", {
+      size: "invisible",
+    });
+  } catch (error) {
+    console.log(error);
   }
-);
+  await window.recaptchaVerifier.render();
+
+  window.confirmationResult = await signInWithPhoneNumber(
+    auth,
+    phoneNumber,
+    window.recaptchaVerifier
+  );
+  return phoneNumber;
+});
 
 export const verifyCode = createAsyncThunk("user/verify", async (code) => {
   try {

@@ -6,6 +6,11 @@
     padding: 10px;
     border-radius: 3px;
     box-sizing: border-box;
+    cursor: pointer;
+}
+
+.selected{
+    background-color: grey;
 }
 
 .conversation:hover{
@@ -42,6 +47,8 @@
     font-size: 0.9rem;
     color: rgba(0, 0, 0, 0.8);
     font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .time{

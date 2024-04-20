@@ -4,8 +4,8 @@ import Conversation from "../conversation/conversation";
 import { useEffect } from "react";
 import {
   getConversations,
-  sidebarSelector,
-} from "../../redux/reducers/sidebarReducer";
+  conversationSelector,
+} from "../../redux/reducers/conversationReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { userSelector } from "../../redux/reducers/userReducer";
 import SiderBarLoader from "../Spinner/siderbarLoader";
@@ -13,9 +13,9 @@ import SearchBar from "../SearchBar/searchBar";
 
 export default function Sidebar() {
   const { user } = useSelector(userSelector);
-  const { loader, conversations } = useSelector(sidebarSelector);
-
+  const { loader, conversations } = useSelector(conversationSelector);
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(getConversations(user));
   }, []);
@@ -24,6 +24,12 @@ export default function Sidebar() {
     <>
       <div className={styles.sidebar}>
         <SearchBar />
+        <div className={styles.addWidget}>
+          <h5 className={styles.title}>ADD CONVERSATION</h5>
+          <button className={styles.addBtn}>
+            <i className="fa-solid fa-plus"></i>
+          </button>
+        </div>
         {loader ? (
           <SiderBarLoader />
         ) : (

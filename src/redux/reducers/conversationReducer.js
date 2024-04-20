@@ -3,12 +3,13 @@ import { db } from "../../firebase/firebase";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 
 const initialState = {
+  current_conversation: null,
   conversations: [],
   loader: false,
 };
 
 export const getConversations = createAsyncThunk(
-  "sidebar/get",
+  "conversation/get",
   async (user) => {
     try {
       const userRef = doc(db, "users", user.id);
@@ -23,6 +24,8 @@ export const getConversations = createAsyncThunk(
         async (docRef) => {
           const snapshot = await getDoc(docRef);
           const result = snapshot.data();
+
+          result.title = result.name;
 
           //   To get name and image for the chats
           if (result.type == "one-one") {
@@ -41,16 +44,12 @@ export const getConversations = createAsyncThunk(
           delete result.chats;
           delete result.type;
 
-          return {
-            ...result,
-            lastActivityAt: result.lastActivityAt.toMillis(),
-          };
+          return result;
         }
       );
 
       // Forming conversation data array.
       const conversations = await Promise.all(conversationsPromises);
-      console.log(conversations);
       return conversations;
     } catch (error) {
       console.log(error);
@@ -58,10 +57,14 @@ export const getConversations = createAsyncThunk(
   }
 );
 
-const sidebarSlice = createSlice({
-  name: "sidebar",
+const conversationSlice = createSlice({
+  name: "conversation",
   initialState,
-  reducers: {},
+  reducers: {
+    setConverstion: (state, action) => {
+      state.current_conversation = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getConversations.fulfilled, (state, action) => {
@@ -74,6 +77,6 @@ const sidebarSlice = createSlice({
   },
 });
 
-export const sidebarReducer = sidebarSlice.reducer;
-export const sidebarActions = sidebarSlice.actions;
-export const sidebarSelector = (state) => state.sidebarReducer;
+export const conversationReducer = conversationSlice.reducer;
+export const conversationActions = conversationSlice.actions;
+export const conversationSelector = (state) => state.conversationReducer;
