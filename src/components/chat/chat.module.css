@@ -12,18 +12,21 @@
     border: 1px solid lightgray;
     border-radius: 5px;
     margin-bottom: 5px;
+    font-weight: 600;
 }
 
 
 .user{
     border: none;
-    color: white;
-    background: linear-gradient(120deg, #4B988D, #17685C);
+    color: black;
+    background: linear-gradient(120deg, cyan,
+        var(--theme));
 }
 
 .footer{
     display: flex;
     justify-content: flex-end;
+    margin-top: 5px;
 }
 
 .imgContainer{

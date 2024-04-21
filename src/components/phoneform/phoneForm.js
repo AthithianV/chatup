@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import styles from "./phoneForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { signUp, userSelector } from "../../redux/reducers/userReducer";
@@ -8,11 +8,9 @@ import codes from "../../data/country.json";
 import Spinner from "../Spinner/spinner";
 
 export default function PhoneForm() {
-  const countryRef = useRef();
   const dispatch = useDispatch();
   const { loader } = useSelector(userSelector);
 
-  const [country, setCountry] = useState("Select Your Country");
   const [code, setCode] = useState(null);
   const [phone, setPhone] = useState(null);
 
@@ -33,7 +31,6 @@ export default function PhoneForm() {
       <select
         className={styles.select}
         onChange={(e) => {
-          setCountry(e.target.value);
           setCode(codes[e.target.value]);
         }}
       >

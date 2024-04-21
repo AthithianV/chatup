@@ -1,6 +1,6 @@
 .form {
-    border: 2px solid black;
     width: fit-content;
+    max-width: 60%;
     padding: 25px;
     text-align: center;
     border-radius: 25px;

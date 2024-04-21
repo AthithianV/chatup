@@ -1,25 +1,34 @@
 .formPage{
-    height: 95vh;
-    width: 95vw;
-    margin: auto;
+    height: 98vh;
+    width: 100vw;
     display: flex;
+    box-sizing: border-box;
 }
 
 .left{
-    height: 90vh;
+    box-sizing: border-box;
+    height: 100%;
     width: 50%;
+    background-color: white;
+    border-radius: 5px;
+    margin-right: 5px;
 }
 
 .left img{
     height: 100%;
     width: 100%;
     margin: auto;
+    border-radius: 5px;
 }
 
 .right{
     width: 50%;
+    height: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: #fff;
+    border-radius: 5px;
 }
 

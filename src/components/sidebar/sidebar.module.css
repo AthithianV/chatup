@@ -1,5 +1,5 @@
 .sidebar{
-    width: 25vw;
+    width: 30vw;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -10,6 +10,37 @@
     box-sizing: border-box;
     margin-right: 5px;
     border-radius: 5px;
+    position: relative;
+}
+
+.search {
+    width: 100%;
+    text-align: center;
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.searchInput {
+    box-sizing: border-box;
+    width: 90%;
+    padding: 15px 15px 15px 40px;
+    position: relative;
+    border-radius: 5px;
+    border: none;
+    background-color: #F4F4F4;
+    font-size: 1.1rem;
+}
+
+.searchBtn {
+    font-size: 1.1rem;
+    position: absolute;
+    left: 25px;
+    top: 15px;
+    background-color: transparent;
+    border: none;
+    z-index: 10;
 }
 
 .addWidget{
@@ -20,7 +51,7 @@
     width: 100%;
     padding: 5px 25px;
     box-sizing: border-box;
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .title{
@@ -35,4 +66,17 @@
     border: 1px solid black;
     cursor: pointer;
     display: block;
+}
+
+.conversationContainer{
+    width: 100%;
+    overflow: auto;
+}
+
+.conversationContainer::-webkit-scrollbar{
+    display: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }

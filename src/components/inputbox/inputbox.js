@@ -16,6 +16,9 @@ export default function InputBox() {
       className={styles.inputbox}
       onSubmit={(e) => {
         e.preventDefault();
+        if (inputRef.current.value.trim().length === 0) {
+          return;
+        }
         dispatch(
           addChat({
             text: inputRef.current.value,
@@ -23,6 +26,7 @@ export default function InputBox() {
             conversation: current_conversation.title,
           })
         );
+        inputRef.current.value = "";
       }}
     >
       <div className={styles.attachments}>

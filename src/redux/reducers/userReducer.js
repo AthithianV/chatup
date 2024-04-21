@@ -1,10 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import {
-  RecaptchaVerifier,
-  getAuth,
-  signInWithPhoneNumber,
-} from "firebase/auth";
-import { auth } from "../../firebase/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth, db } from "../../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import notifyError from "../../util/notifyError";
 
 const INITIAL_STATE = {
   phoneNumber: null,
@@ -14,6 +12,8 @@ const INITIAL_STATE = {
   loader: false,
   displayOtpForm: false,
   displayPhoneForm: true,
+  displayContact: false,
+  contacts: [],
 };
 
 export const signUp = createAsyncThunk("user/signup", async (phoneNumber) => {
@@ -21,32 +21,56 @@ export const signUp = createAsyncThunk("user/signup", async (phoneNumber) => {
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "sign-in-button", {
       size: "invisible",
     });
-  } catch (error) {
-    console.log(error);
-  }
-  await window.recaptchaVerifier.render();
+    await window.recaptchaVerifier.render();
 
-  window.confirmationResult = await signInWithPhoneNumber(
-    auth,
-    phoneNumber,
-    window.recaptchaVerifier
-  );
-  return phoneNumber;
+    window.confirmationResult = await signInWithPhoneNumber(
+      auth,
+      phoneNumber,
+      window.recaptchaVerifier
+    );
+    return phoneNumber;
+  } catch (error) {
+    throw error;
+  }
 });
 
 export const verifyCode = createAsyncThunk("user/verify", async (code) => {
   try {
     const user = await window.confirmationResult.confirm(code);
+    console.log(user);
     return user;
   } catch (error) {
-    console.log(error);
+    throw error;
+  }
+});
+
+export const getContacts = createAsyncThunk("user/getContent", async (user) => {
+  try {
+    const snapshot = await getDoc(doc(db, "users", user.id));
+    const userRefs = snapshot.data().Contacts;
+
+    const promises = userRefs.map(async (userRef) => {
+      const snapshot = await getDoc(userRef);
+      const user = snapshot.data();
+      return { name: user.name, image: user.image, id: snapshot.id };
+    });
+
+    const contacts = await Promise.all(promises);
+
+    return contacts;
+  } catch (error) {
+    throw error;
   }
 });
 
 const userSlice = createSlice({
   name: "user",
   initialState: INITIAL_STATE,
-  reducers: {},
+  reducers: {
+    switchDisplayContact: (state, action) => {
+      state.displayContact = !state.displayContact;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(signUp.fulfilled, (state, action) => {
@@ -58,13 +82,26 @@ const userSlice = createSlice({
       .addCase(signUp.pending, (state, action) => {
         state.loader = true;
       })
+      .addCase(signUp.rejected, (state, action) => {
+        notifyError("Something Went Wrong");
+      })
       .addCase(verifyCode.fulfilled, (state, action) => {
         state.user = action.payload;
         state.displayOtpForm = false;
         state.loader = false;
       })
+
       .addCase(verifyCode.pending, (state, action) => {
         state.loader = true;
+      })
+      .addCase(verifyCode.rejected, (state, action) => {
+        notifyError("Something Went Wrong");
+      })
+      .addCase(getContacts.fulfilled, (state, action) => {
+        state.contacts = action.payload;
+      })
+      .addCase(getContacts.rejected, (state, action) => {
+        notifyError("Something Went Wrong");
       });
   },
 });

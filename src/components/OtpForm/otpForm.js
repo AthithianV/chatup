@@ -11,7 +11,7 @@ export default function OtpForm() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (code && code.length == 6) {
+    if (code && code.length === 6) {
       dispatch(verifyCode(code));
     }
   }
