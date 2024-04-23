@@ -12,8 +12,7 @@ import AddConversation from "../AddConversation/AddConversation";
 import { BeatLoader } from "react-spinners";
 
 export default function Sidebar() {
-  const { user, displayContact } =
-    useSelector(userSelector);
+  const { user, displayContact } = useSelector(userSelector);
   const { loader, conversations, current_conversation } =
     useSelector(conversationSelector);
 
@@ -24,25 +23,25 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (!user) {
-      if (localStorage.getItem("chatup-user")) {
-        dispatch(userAction.setUser(localStorage.getItem("chatup-user")));
+      const data = JSON.parse(localStorage.getItem("chatup-user"));
+      if (data) {
+        dispatch(userAction.setUser(data));
       } else {
         navigate("/user");
       }
     }
   }, [navigate, user, dispatch]);
 
-    useEffect(() => {
-      console.log(current_conversation);
-      if (current_conversation) navigate("/" + current_conversation.id);
-    }, [current_conversation, navigate]);
+  useEffect(() => {
+    if (current_conversation) navigate("/" + current_conversation.id);
+  }, [current_conversation, navigate]);
 
   useEffect(() => {
     if (user) dispatch(getConversations(user));
   }, [dispatch, user, current_conversation]);
 
   useEffect(() => {
-    if(conversations){
+    if (conversations) {
       const temp = [...conversations];
       setModifiedConversation(
         temp.sort((a, b) => b.lastActivityAt - a.lastActivityAt)

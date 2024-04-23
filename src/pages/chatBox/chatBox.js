@@ -18,9 +18,8 @@ export default function ChatBox() {
   const { current_conversation } = useSelector(conversationSelector);
   const { user } = useSelector(userSelector);
 
-
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && user) {
       dispatch(pickConversation({ user, id: conversationId }));
       dispatch(loadChat(conversationId));
     }

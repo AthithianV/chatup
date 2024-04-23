@@ -126,6 +126,7 @@ export const pickConversation = createAsyncThunk(
 
       dispatch(conversationActions.setCurrentConversation(conversation));
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }

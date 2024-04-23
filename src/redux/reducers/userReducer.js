@@ -134,9 +134,15 @@ export const verifyCode = createAsyncThunk(
         });
       }
 
-      localStorage.setItem("chatup-user", userData);
+      const data = {
+        id: userData.id,
+        name: userData.name,
+        image: userData.image,
+      };
 
-      return userData;
+      localStorage.setItem("chatup-user", JSON.stringify(data));
+
+      return data;
     } catch (error) {
       console.log(error);
       throw error;
