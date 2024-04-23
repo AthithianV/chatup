@@ -17,9 +17,11 @@ export default function Conversation({ conversation }) {
 
   return (
     <NavLink
-      to={conversation.title}
+      to={conversation.id}
       style={({ isActive }) =>
-        isActive ? { backgroundColor: "var(--theme)" } : null
+        isActive
+          ? { background: "linear-gradient(120deg, cyan,var(--theme))" }
+          : null
       }
       className={styles.conversation}
     >

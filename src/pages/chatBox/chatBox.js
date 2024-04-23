@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
-import Chat from "../../components/chat/chat";
-import InputBox from "../../components/inputbox/inputbox";
+import Chat from "../../components/Chatbox/chat/chat";
+import InputBox from "../../components/Chatbox/inputbox/inputbox";
 import styles from "./chatbox.module.css";
 import { chatSelector, loadChat } from "../../redux/reducers/chatReducer";
 import { userSelector } from "../../redux/reducers/userReducer";
@@ -9,26 +9,22 @@ import {
   pickConversation,
 } from "../../redux/reducers/conversationReducer";
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function ChatBox() {
   const dispatch = useDispatch();
-  const { conversation } = useParams();
+  const { conversationId } = useParams();
   const { chats } = useSelector(chatSelector);
   const { current_conversation } = useSelector(conversationSelector);
   const { user } = useSelector(userSelector);
-  const navigate = useNavigate();
+
 
   useEffect(() => {
-    if (current_conversation) navigate("/" + current_conversation.title);
-  }, [current_conversation, navigate]);
-
-  useEffect(() => {
-    if (conversation) {
-      dispatch(pickConversation({ user, title: conversation }));
-      dispatch(loadChat(conversation));
+    if (conversationId) {
+      dispatch(pickConversation({ user, id: conversationId }));
+      dispatch(loadChat(conversationId));
     }
-  }, [dispatch, conversation, user]);
+  }, [dispatch, conversationId, user]);
 
   return (
     <div className={styles.chatbox}>
@@ -43,7 +39,7 @@ export default function ChatBox() {
           <div className={styles.chatContainer}>
             {chats &&
               chats.map((chat, index) => {
-                if (chat.person === user.name) {
+                if (chat.sender === user.name) {
                   return <Chat key={index} user={true} chat={chat} />;
                 } else {
                   return <Chat key={index} chat={chat} />;

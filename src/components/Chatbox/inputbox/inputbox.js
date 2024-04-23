@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import styles from "./inputbox.module.css";
 import { useDispatch, useSelector } from "react-redux";
-import { addChat } from "../../redux/reducers/chatReducer";
-import { userSelector } from "../../redux/reducers/userReducer";
-import { conversationSelector } from "../../redux/reducers/conversationReducer";
+import { addChat } from "../../../redux/reducers/chatReducer";
+import { userSelector } from "../../../redux/reducers/userReducer";
+import { conversationSelector } from "../../../redux/reducers/conversationReducer";
 
 export default function InputBox() {
   const inputRef = useRef();
@@ -22,8 +22,8 @@ export default function InputBox() {
         dispatch(
           addChat({
             text: inputRef.current.value,
-            person: user.name,
-            conversation: current_conversation.title,
+            sender: user.name,
+            conversationId: current_conversation.id,
           })
         );
         inputRef.current.value = "";

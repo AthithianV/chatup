@@ -1,34 +1,53 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import styles from "./sidebar.module.css";
 import Conversation from "../conversation/conversation";
 import { useEffect, useRef, useState } from "react";
 import {
   getConversations,
   conversationSelector,
-} from "../../redux/reducers/conversationReducer";
+} from "../../../redux/reducers/conversationReducer";
 import { useDispatch, useSelector } from "react-redux";
-import { userAction, userSelector } from "../../redux/reducers/userReducer";
-import SiderBarLoader from "../Spinner/siderbarLoader";
+import { userAction, userSelector } from "../../../redux/reducers/userReducer";
 import AddConversation from "../AddConversation/AddConversation";
+import { BeatLoader } from "react-spinners";
 
 export default function Sidebar() {
-  const { user, displayContact, current_conversation } =
+  const { user, displayContact } =
     useSelector(userSelector);
-  const { loader, conversations } = useSelector(conversationSelector);
+  const { loader, conversations, current_conversation } =
+    useSelector(conversationSelector);
 
   const [modifyConversation, setModifiedConversation] = useState();
   const dispatch = useDispatch();
   const inputRef = useRef();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(getConversations(user));
+    if (!user) {
+      if (localStorage.getItem("chatup-user")) {
+        dispatch(userAction.setUser(localStorage.getItem("chatup-user")));
+      } else {
+        navigate("/user");
+      }
+    }
+  }, [navigate, user, dispatch]);
+
+    useEffect(() => {
+      console.log(current_conversation);
+      if (current_conversation) navigate("/" + current_conversation.id);
+    }, [current_conversation, navigate]);
+
+  useEffect(() => {
+    if (user) dispatch(getConversations(user));
   }, [dispatch, user, current_conversation]);
 
   useEffect(() => {
-    const temp = [...conversations];
-    setModifiedConversation(
-      temp.sort((a, b) => b.lastActivityAt - a.lastActivityAt)
-    );
+    if(conversations){
+      const temp = [...conversations];
+      setModifiedConversation(
+        temp.sort((a, b) => b.lastActivityAt - a.lastActivityAt)
+      );
+    }
   }, [conversations]);
 
   return (
@@ -50,7 +69,6 @@ export default function Sidebar() {
           <input
             ref={inputRef}
             onChange={() => {
-              console.log(inputRef.current.value);
               setModifiedConversation(
                 conversations.filter((c) =>
                   c.name.includes(inputRef.current.value)
@@ -75,7 +93,7 @@ export default function Sidebar() {
 
         <div className={styles.conversationContainer}>
           {loader ? (
-            <SiderBarLoader />
+            <BeatLoader size={25} color={"black"} />
           ) : (
             modifyConversation &&
             modifyConversation.map((c, index) => (

@@ -4,9 +4,9 @@ import {
   getContacts,
   userAction,
   userSelector,
-} from "../../redux/reducers/userReducer";
+} from "../../../redux/reducers/userReducer";
 import { useEffect, useRef, useState } from "react";
-import { addConversation } from "../../redux/reducers/conversationReducer";
+import { addConversation } from "../../../redux/reducers/conversationReducer";
 
 export default function AddConversation() {
   const { user, contacts } = useSelector(userSelector);
@@ -51,7 +51,10 @@ export default function AddConversation() {
               key={index}
               onClick={() => {
                 dispatch(
-                  addConversation({ user, friend: { name: c.name, id: c.id } })
+                  addConversation({
+                    user: { name: user.name, id: user.id, image: user.image },
+                    friend: c,
+                  })
                 );
                 dispatch(userAction.switchDisplayContact());
               }}

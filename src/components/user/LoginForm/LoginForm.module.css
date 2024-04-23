@@ -1,0 +1,25 @@
+.code {
+    width: fit-content;
+    text-align: center;
+    border-bottom: 3px solid var(--theme);
+    padding: 5px;
+    font-size: 1.2rem;
+}
+
+.input {
+    margin: 50px 10px;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 5px 5px 5px 10px;
+    border: none;
+    border-bottom: 3px solid var(--theme);
+}
+
+.country {
+    width: 10rem;
+}
+
+.input:focus {
+    outline: none;
+    color: var(--theme);
+}

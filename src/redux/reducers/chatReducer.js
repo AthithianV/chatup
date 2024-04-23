@@ -1,5 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  arrayUnion,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import { conversationActions } from "./conversationReducer";
 import notifyError from "../../util/notifyError";
@@ -10,37 +15,38 @@ const initialState = {
 
 export const addChat = createAsyncThunk(
   "chat/add",
-  async ({ text, person, conversation }, { dispatch }) => {
-    const chat = { person, text, time: Date.now() };
-    const docRef = doc(db, "Conversations", conversation);
-
+  async ({ text, sender, conversationId }, { dispatch }) => {
     try {
+      const chat = { sender, text, time: Date.now() };
+      const docRef = doc(db, "Conversations", conversationId);
       await updateDoc(docRef, {
         chats: arrayUnion(chat),
-        lastActivityAt: Date.now(),
+        lastActivityAt: chat.time,
         lastChat: text,
       });
 
       dispatch(
         conversationActions.updateCurrentConversation({
           text,
-          lastActivityAt: Date.now(),
+          lastActivityAt: chat.time,
         })
       );
 
       return chat;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
 );
 
-export const loadChat = createAsyncThunk("chat/load", async (name) => {
+export const loadChat = createAsyncThunk("chat/load", (id, { dispatch }) => {
   try {
-    const docRef = doc(db, "Conversations", name);
-    const snapshot = await getDoc(docRef);
-    const conversation = snapshot.data();
-    return conversation.chats;
+    const docRef = doc(db, "Conversations", id);
+    onSnapshot(docRef, async (doc) => {
+      const chats = doc.data().chats;
+      dispatch(chatAction.setChat(chats));
+    });
   } catch (error) {
     throw error;
   }
@@ -49,17 +55,15 @@ export const loadChat = createAsyncThunk("chat/load", async (name) => {
 const chatSlice = createSlice({
   name: "chat",
   initialState,
-  reducers: {},
+  reducers: {
+    setChat: (state, action) => {
+      state.chats = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(loadChat.fulfilled, (state, action) => {
-        state.chats = action.payload;
-      })
       .addCase(loadChat.rejected, (state, action) => {
         notifyError("Something Went Wrong!!!");
-      })
-      .addCase(addChat.fulfilled, (state, action) => {
-        state.chats.push(action.payload);
       })
       .addCase(addChat.rejected, (state, action) => {
         notifyError("Something Went Wrong!!!");

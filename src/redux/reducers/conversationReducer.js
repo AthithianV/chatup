@@ -1,7 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { db } from "../../firebase/firebase";
-import { arrayUnion, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import notifyError from "../../util/notifyError";
+import notifySuccess from "../../util/notifySuccess";
 
 const initialState = {
   current_conversation: null,
@@ -26,29 +35,24 @@ export const addConversation = createAsyncThunk(
 
       // Check if conversation already exists,
       const userSnapshot = await getDoc(userRef);
-      const userConversations = userSnapshot.data().Conversation;
-      const promises = userConversations.map(async (c) => {
-        const snapshot = await getDoc(c);
-        return snapshot.data();
-      });
-      const conversations = await Promise.all(promises);
-      const foundConversation = conversations.find((c) =>
-        c.name.includes(friend.name)
+      const userConversations = userSnapshot.data().conversations;
+
+      const foundConversation = userConversations.find(
+        (c) => c.user.id === friend.id
       );
 
       // If exists set current conversation to found conversation.
       if (foundConversation) {
-        foundConversation.title = foundConversation.name;
-        foundConversation.name = friendDoc.name;
-        foundConversation.image = friendDoc.image;
+        const snapshot = await getDoc(foundConversation.conversationRef);
+        const data = snapshot.data();
 
-        delete foundConversation.members;
-        delete foundConversation.chats;
-        delete foundConversation.type;
-
-        console.log(foundConversation);
-
-        dispatch(conversationActions.setConversation(foundConversation));
+        dispatch(
+          conversationActions.setCurrentConversation({
+            id: data.id,
+            name: foundConversation.user.name,
+            image: foundConversation.user.image,
+          })
+        );
         return;
       }
 
@@ -56,7 +60,7 @@ export const addConversation = createAsyncThunk(
       const chats = [];
       const lastActivityAt = Date.now();
       const members = [userRef, friendRef];
-      const type = "one-one";
+      const type = "individual";
       const lastChat = "";
 
       const obj = {
@@ -68,19 +72,32 @@ export const addConversation = createAsyncThunk(
         lastChat,
       };
 
-      const docRef = doc(db, "Conversations", name);
-      await setDoc(docRef, obj);
+      const docRef = await addDoc(collection(db, "Conversations"), obj);
+      await updateDoc(docRef, { id: docRef.id });
 
-      await updateDoc(userRef, { Conversation: arrayUnion(docRef) });
-      await updateDoc(friendRef, { Conversation: arrayUnion(docRef) });
+      await updateDoc(userRef, {
+        conversations: arrayUnion({
+          conversationRef: docRef,
+          user: { name: friend.name, image: friendDoc.image, id: friend.id },
+          type: "individual",
+        }),
+      });
+      await updateDoc(friendRef, {
+        conversations: arrayUnion({
+          conversationRef: docRef,
+          user: { name: user.name, image: user.image, id: user.id },
+          type: "individual",
+        }),
+      });
 
       return {
-        title: obj.name,
+        id: docRef.id,
         name: friend.name,
         image: friendDoc.image,
         lastActivityAt: obj.lastActivityAt,
       };
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
@@ -88,16 +105,16 @@ export const addConversation = createAsyncThunk(
 
 export const pickConversation = createAsyncThunk(
   "conversation/pick",
-  async ({ title, user }, { dispatch }) => {
+  async ({ id, user }, { dispatch }) => {
     try {
-      const snapshot = await getDoc(doc(db, "Conversations", title));
+      const snapshot = await getDoc(doc(db, "Conversations", id));
       const conversation = snapshot.data();
-      conversation.title = conversation.name;
 
       let userRef = conversation.members[1];
       if (conversation.members[0].id !== user.id) {
         userRef = conversation.members[0];
       }
+
       const userSnapshot = await getDoc(userRef);
       const userData = userSnapshot.data();
       conversation.image = userData.image;
@@ -107,7 +124,7 @@ export const pickConversation = createAsyncThunk(
       delete conversation.chats;
       delete conversation.type;
 
-      dispatch(conversationActions.setConversation(conversation));
+      dispatch(conversationActions.setCurrentConversation(conversation));
     } catch (error) {
       throw error;
     }
@@ -116,46 +133,42 @@ export const pickConversation = createAsyncThunk(
 
 export const getConversations = createAsyncThunk(
   "conversation/get",
-  async (user) => {
+  async (user, { dispatch }) => {
     try {
       const userRef = doc(db, "users", user.id);
       // Get userData.
-      const snapshot = await getDoc(userRef);
-      const userData = snapshot.data();
+      onSnapshot(userRef, async (doc) => {
+        const userData = doc.data();
 
-      // Form an array of conversation from userData
+        // Form an array of conversation from userData
 
-      // Forming an array of Promises
-      const conversationsPromises = userData.Conversation.map(
-        async (docRef) => {
-          const snapshot = await getDoc(docRef);
-          const result = snapshot.data();
+        // Forming an array of Promises
+        const conversationsPromises = userData.conversations.map(
+          async ({ conversationRef, user, type }) => {
+            const snapshot = await getDoc(conversationRef);
+            const result = snapshot.data();
+            result.id = snapshot.id;
 
-          result.title = result.name;
+            if (type === "individual") {
+              result.image = user.image;
+              result.name = user.name;
+            }
 
-          //   To get name and image for the chats
-          if (result.type === "one-one") {
-            const friendRef = result.members.find((m) => {
-              return m.id !== user.id;
-            });
-            const friendDataSnap = await getDoc(friendRef);
-            const friendData = friendDataSnap.data();
-            result.image = friendData.image;
-            result.name = friendData.name;
+            delete result.members;
+            delete result.chats;
+            delete result.type;
+
+            return result;
           }
+        );
 
-          delete result.members;
-          delete result.chats;
-          delete result.type;
+        // Forming conversation data array.
+        const conversations = await Promise.all(conversationsPromises);
 
-          return result;
-        }
-      );
-
-      // Forming conversation data array.
-      const conversations = await Promise.all(conversationsPromises);
-      return conversations;
+        dispatch(conversationActions.setConversations(conversations));
+      });
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
@@ -165,7 +178,7 @@ const conversationSlice = createSlice({
   name: "conversation",
   initialState,
   reducers: {
-    setConversation: (state, action) => {
+    setCurrentConversation: (state, action) => {
       state.current_conversation = action.payload;
     },
     updateCurrentConversation: (state, action) => {
@@ -177,16 +190,12 @@ const conversationSlice = createSlice({
       state.conversations[index].lastActivityAt = lastActivityAt;
       state.conversations[index].lastChat = text;
     },
+    setConversations: (state, action) => {
+      state.conversations = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getConversations.fulfilled, (state, action) => {
-        state.conversations = action.payload;
-        state.loader = false;
-      })
-      .addCase(getConversations.pending, (state, action) => {
-        state.loader = true;
-      })
       .addCase(getConversations.rejected, (state, action) => {
         notifyError("Something Went Wrong!!!");
       })
@@ -194,7 +203,7 @@ const conversationSlice = createSlice({
         if (action.payload) {
           state.current_conversation = action.payload;
           state.conversations.push(action.payload);
-          notifyError("New Convesation has been created!!!");
+          notifySuccess("New Convesation has been created!!!");
         }
       })
       .addCase(addConversation.rejected, (state, action) => {

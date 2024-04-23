@@ -10,7 +10,7 @@
     padding: 5px 10px 10px 10px;
     width: fit-content;
     border: 1px solid lightgray;
-    border-radius: 5px;
+    border-radius: 0 5px 5px 5px;
     margin-bottom: 5px;
     font-weight: 600;
 }
@@ -19,8 +19,10 @@
 .user{
     border: none;
     color: black;
-    background: linear-gradient(120deg, cyan,
-        var(--theme));
+    /* background: linear-gradient(120deg, cyan,
+        var(--theme)); */
+        background-color: var(--theme);
+    border-radius: 5px 0 5px 5px;
 }
 
 .footer{
