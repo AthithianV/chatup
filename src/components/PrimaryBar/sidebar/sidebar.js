@@ -8,7 +8,6 @@ import {
 } from "../../../redux/reducers/conversationReducer";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addContact,
   userAction,
   userSelector,
 } from "../../../redux/reducers/userReducer";
