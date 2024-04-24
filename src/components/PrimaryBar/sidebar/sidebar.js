@@ -7,7 +7,11 @@ import {
   conversationSelector,
 } from "../../../redux/reducers/conversationReducer";
 import { useDispatch, useSelector } from "react-redux";
-import { userAction, userSelector } from "../../../redux/reducers/userReducer";
+import {
+  addContact,
+  userAction,
+  userSelector,
+} from "../../../redux/reducers/userReducer";
 import AddConversation from "../AddConversation/AddConversation";
 import { BeatLoader } from "react-spinners";
 

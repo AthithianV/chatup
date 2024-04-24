@@ -7,6 +7,7 @@ import {
 import { auth, db } from "../../firebase/firebase";
 import {
   addDoc,
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -25,6 +26,29 @@ const INITIAL_STATE = {
   displayContact: false,
   contacts: [],
 };
+
+export const addContact = createAsyncThunk("user/addContact", async () => {
+  const users = [
+    "Andre",
+    "Darren",
+    "David",
+    "Diana",
+    "Josh",
+    "Olivia",
+    "Parker",
+    "Robin",
+  ];
+  users.forEach(async (u) => {
+    await updateDoc(doc(db, "users", u), {
+      contacts: arrayUnion({
+        id: "Ig2eNx43ZEKpDrHOCsl2",
+        name: "Guest",
+        image:
+          "https://firebasestorage.googleapis.com/v0/b/chatap-b6d99.appspot.com/o/image%2FLotus.png?alt=media&token=17d635ba-4263-4fe4-b856-dffa9b01929c",
+      }),
+    });
+  });
+});
 
 export const login = createAsyncThunk("user/login", async ({ code, phone }) => {
   try {
