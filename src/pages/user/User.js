@@ -11,6 +11,6 @@ export default function User() {
         />
       </div>
       <Outlet />
-    </div>
+    </div> 
   );
 }

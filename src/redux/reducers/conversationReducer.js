@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import notifyError from "../../util/notifyError";
 import notifySuccess from "../../util/notifySuccess";
+import { generateKey } from "../../util/encryptKey";
 
 const initialState = {
   current_conversation: null,
@@ -51,6 +52,7 @@ export const addConversation = createAsyncThunk(
             id: data.id,
             name: foundConversation.user.name,
             image: foundConversation.user.image,
+            encryptionKey: foundConversation.encryptionKey,
           })
         );
         return;
@@ -62,6 +64,7 @@ export const addConversation = createAsyncThunk(
       const members = [userRef, friendRef];
       const type = "individual";
       const lastChat = "";
+      const encryptionKey = await generateKey();
 
       const obj = {
         name,
@@ -70,6 +73,7 @@ export const addConversation = createAsyncThunk(
         members,
         type,
         lastChat,
+        encryptionKey,
       };
 
       const docRef = await addDoc(collection(db, "Conversations"), obj);
@@ -95,6 +99,7 @@ export const addConversation = createAsyncThunk(
         name: friend.name,
         image: friendDoc.image,
         lastActivityAt: obj.lastActivityAt,
+        encryptionKey,
       };
     } catch (error) {
       console.log(error);
@@ -120,7 +125,7 @@ export const pickConversation = createAsyncThunk(
       conversation.image = userData.image;
       conversation.name = userData.name;
 
-      delete conversation.members;
+      // delete conversation.members;
       delete conversation.chats;
       delete conversation.type;
 
@@ -148,14 +153,13 @@ export const getConversations = createAsyncThunk(
           async ({ conversationRef, user, type }) => {
             const snapshot = await getDoc(conversationRef);
             const result = snapshot.data();
-            result.id = snapshot.id;
 
             if (type === "individual") {
               result.image = user.image;
               result.name = user.name;
             }
 
-            delete result.members;
+            // delete result.members;
             delete result.chats;
             delete result.type;
 

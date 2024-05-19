@@ -1,6 +1,10 @@
+import { useSelector } from "react-redux";
 import styles from "./chat.module.css";
+import { userSelector } from "../../../redux/reducers/userReducer";
 
-export default function Chat({ user, chat }) {
+export default function Chat({ chat }) {
+  const { user } = useSelector(userSelector);
+
   let t = new Date(chat.time);
   t.setHours(t.getHours() + 5);
   t.setMinutes(t.getMinutes() + 30);

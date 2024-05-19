@@ -21,9 +21,19 @@ export default function ChatBox() {
   useEffect(() => {
     if (conversationId && user) {
       dispatch(pickConversation({ user, id: conversationId }));
-      dispatch(loadChat(conversationId));
     }
   }, [dispatch, conversationId, user]);
+
+  useEffect(() => {
+    if (current_conversation) {
+      dispatch(
+        loadChat({
+          id: conversationId,
+          key: current_conversation.encryptionKey,
+        })
+      );
+    }
+  }, [dispatch, current_conversation]);
 
   return (
     <div className={styles.chatbox}>

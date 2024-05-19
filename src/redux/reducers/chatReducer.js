@@ -1,13 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import {
-  arrayUnion,
-  doc,
-  onSnapshot,
-  updateDoc,
-} from "firebase/firestore";
+import { arrayUnion, doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
 import { conversationActions } from "./conversationReducer";
 import notifyError from "../../util/notifyError";
+import { decryptMessage, encryptMessage } from "../../util/encryptDecrypt";
+import { importKey } from "../../util/encryptKey";
 
 const initialState = {
   chats: [],
@@ -15,9 +12,15 @@ const initialState = {
 
 export const addChat = createAsyncThunk(
   "chat/add",
-  async ({ text, sender, conversationId }, { dispatch }) => {
+  async ({ text, sender, conversationId, key }, { dispatch }) => {
     try {
-      const chat = { sender, text, time: Date.now() };
+      // const IV = window.crypto.getRandomValues(new Uint8Array(12));
+      // const encryptedText = await encryptMessage(text, key, IV);
+      const chat = {
+        sender: sender.name,
+        text,
+        time: Date.now(),
+      };
       const docRef = doc(db, "Conversations", conversationId);
       await updateDoc(docRef, {
         chats: arrayUnion(chat),
@@ -40,17 +43,21 @@ export const addChat = createAsyncThunk(
   }
 );
 
-export const loadChat = createAsyncThunk("chat/load", (id, { dispatch }) => {
-  try {
-    const docRef = doc(db, "Conversations", id);
-    onSnapshot(docRef, async (doc) => {
-      const chats = doc.data().chats;
-      dispatch(chatAction.setChat(chats));
-    });
-  } catch (error) {
-    throw error;
+export const loadChat = createAsyncThunk(
+  "chat/load",
+  ({ id, key }, { dispatch }) => {
+    try {
+      const docRef = doc(db, "Conversations", id);
+      onSnapshot(docRef, async (doc) => {
+        const chats = doc.data().chats;
+
+        return chats;
+      });
+    } catch (error) {
+      throw error;
+    }
   }
-});
+);
 
 const chatSlice = createSlice({
   name: "chat",

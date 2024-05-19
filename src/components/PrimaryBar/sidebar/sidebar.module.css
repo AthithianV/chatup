@@ -84,13 +84,9 @@
     justify-content: center;
 }
 
-
+/* 
 @media screen and (max-width: 500px) {
-    .title{
-        display: none;
+    .sidebar {
+        width: 100vw;
     }
-
-    .sidebar{
-        padding: 2px;
-    }
-}
+} */

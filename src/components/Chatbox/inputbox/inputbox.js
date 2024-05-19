@@ -11,24 +11,24 @@ export default function InputBox() {
   const { user } = useSelector(userSelector);
   const { current_conversation } = useSelector(conversationSelector);
 
+  const submitForm = (e) => {
+    e.preventDefault();
+    if (inputRef.current.value.trim().length === 0) {
+      return;
+    }
+    dispatch(
+      addChat({
+        text: inputRef.current.value,
+        sender: { name: user.name },
+        conversationId: current_conversation.id,
+        key: current_conversation.encryptionKey,
+      })
+    );
+    inputRef.current.value = "";
+  };
+
   return (
-    <form
-      className={styles.inputbox}
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (inputRef.current.value.trim().length === 0) {
-          return;
-        }
-        dispatch(
-          addChat({
-            text: inputRef.current.value,
-            sender: user.name,
-            conversationId: current_conversation.id,
-          })
-        );
-        inputRef.current.value = "";
-      }}
-    >
+    <form className={styles.inputbox} onSubmit={(e) => submitForm(e)}>
       <div className={styles.attachments}>
         <i className="fa-solid fa-paperclip"></i>
       </div>

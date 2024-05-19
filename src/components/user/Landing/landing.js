@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import { userAction } from "../../../redux/reducers/userReducer";
+import { loginGuest, userAction } from "../../../redux/reducers/userReducer";
 
 export default function AuthOption() {
   const dispatch = useDispatch();
@@ -22,13 +22,7 @@ export default function AuthOption() {
       <button
         className="userButton"
         onClick={() => {
-          dispatch(
-            userAction.setUser({
-              id: "Ig2eNx43ZEKpDrHOCsl2",
-              name: "Guest",
-              image: "https://cdn-icons-png.flaticon.com/128/3870/3870239.png",
-            })
-          );
+          dispatch(loginGuest());
           navigate("/");
         }}
       >
