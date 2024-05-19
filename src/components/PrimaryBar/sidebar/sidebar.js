@@ -8,7 +8,7 @@ import {
 } from "../../../redux/reducers/conversationReducer";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addEncryption,
+  addContact,
   userAction,
   userSelector,
 } from "../../../redux/reducers/userReducer";
