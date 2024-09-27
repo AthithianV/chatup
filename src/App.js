@@ -9,7 +9,6 @@ import Hero from "./pages/Hero/Hero";
 import AuthOption from "./components/user/Landing/landing";
 import LoginForm from "./components/user/LoginForm/LoginForm";
 import RegisterForm from "./components/user/Register/register";
-import OtpForm from "./components/user/OtpForm/otpForm";
 
 function App() {
   const router = createBrowserRouter([
@@ -29,9 +28,7 @@ function App() {
       children: [
         { index: true, element: <AuthOption /> },
         { path: "login", element: <LoginForm /> },
-        { path: "register", element: <RegisterForm /> },
-        { path: "verify-code", element: <OtpForm /> },
-        { path: "verify-code", element: <OtpForm /> },
+        { path: "register", element: <RegisterForm /> }
       ],
     },
   ]);

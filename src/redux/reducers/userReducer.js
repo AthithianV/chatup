@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  createUserWithEmailAndPassword,
   RecaptchaVerifier,
-  signInWithPhoneNumber,
+  signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
 import { auth, db } from "../../firebase/firebase";
@@ -50,28 +51,15 @@ export const addContact = createAsyncThunk("user/addContact", async () => {
   });
 });
 
-export const login = createAsyncThunk("user/login", async ({ code, phone }) => {
+export const login = createAsyncThunk("user/login", async ({ email, password }) => {
   try {
+
+    const userCredentials = await signInWithEmailAndPassword(auth, {
+      email, password
+    })
+
     const snapshot = await getDocs(
-      query(collection(db, "users"), where("phoneNumber", "==", phone))
-    );
-
-    if (snapshot.empty) {
-      notifyError("User Not found, Please Register");
-      return null;
-    }
-
-    console.log(snapshot);
-
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "login-button", {
-      size: "invisible",
-    });
-    await window.recaptchaVerifier.render();
-
-    window.confirmationResult = await signInWithPhoneNumber(
-      auth,
-      "+" + code + phone,
-      window.recaptchaVerifier
+      query(collection(db, "users"), where("email", "==", email))
     );
 
     let user;
@@ -94,7 +82,7 @@ export const login = createAsyncThunk("user/login", async ({ code, phone }) => {
 export const register = createAsyncThunk("user/register", async (user) => {
   try {
     const snapshot = await getDocs(
-      query(collection(db, "users"), where("phoneNumber", "==", user.phone))
+      query(collection(db, "users"), where("username", "==", user.username))
     );
 
     if (!snapshot.empty) {
@@ -102,77 +90,42 @@ export const register = createAsyncThunk("user/register", async (user) => {
       return null;
     }
 
-    let storage = getStorage();
-    let imageRef = ref(storage, "image/" + user.image.name);
-    await uploadBytes(imageRef, user.image);
-    const downloadUrl = await getDownloadURL(imageRef);
+    // let storage = getStorage();
+    // let imageRef = ref(storage, "image/" + user.image.name);
+    // await uploadBytes(imageRef, user.image);
+    // const downloadUrl = await getDownloadURL(imageRef);
 
-    user.image = downloadUrl;
+    // user.image = downloadUrl;
 
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, "register-button", {
-      size: "invisible",
-    });
-    await window.recaptchaVerifier.render();
-
-    window.confirmationResult = await signInWithPhoneNumber(
+    const userCredentials = await createUserWithEmailAndPassword(
       auth,
-      "+" + user.code + user.phone,
-      window.recaptchaVerifier
+      user.email,
+      user.password,
     );
 
-    return user;
+    let userData = {
+      uid: userCredentials.user.uid,
+      name: user.name,
+      countryCode: user.code,
+      phoneNumber: user.phone,
+      image: null,
+      conversations: [],
+      contacts: [],
+      lastSeen: Date.now(),
+    };
+
+    const docRef = await addDoc(collection(db, "users"), userData);
+    await updateDoc(docRef, { id: docRef.id });
+    userData.id = docRef.id;
+
+    return true;
+
   } catch (error) {
     console.log(error);
     throw error;
   }
 });
 
-export const verifyCode = createAsyncThunk(
-  "user/verify",
-  async ({ user, code }) => {
-    try {
-      const userCredentials = await window.confirmationResult.confirm(code);
-      const phone = userCredentials.user.phoneNumber;
-
-      let userData = {
-        uid: userCredentials.user.uid,
-        name: user.name,
-        countryCode: user.code,
-        phoneNumber: user.phone,
-        image: user.image,
-        conversations: [],
-        contacts: [],
-        lastSeen: Date.now(),
-      };
-      const userSnapshot = await getDocs(
-        query(collection(db, "users"), where("phoneNumber", "==", phone))
-      );
-
-      if (userSnapshot.empty) {
-        const docRef = await addDoc(collection(db, "users"), userData);
-        await updateDoc(docRef, { id: docRef.id });
-        userData.id = docRef.id;
-      } else {
-        userSnapshot.forEach((s) => {
-          userData = s.data();
-        });
-      }
-
-      const data = {
-        id: userData.id,
-        name: userData.name,
-        image: userData.image,
-      };
-
-      localStorage.setItem("chatup-user", JSON.stringify(data));
-
-      return data;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-);
 
 export const logout = createAsyncThunk("user/signout", async () => {
   try {
@@ -221,20 +174,6 @@ const userSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         notifyError("Something Went Wrong");
       })
-      .addCase(verifyCode.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.loader = false;
-      })
-      .addCase(verifyCode.pending, (state, action) => {
-        state.loader = true;
-      })
-      .addCase(verifyCode.rejected, (state, action) => {
-        if (action.error.name === "auth/code-expired") {
-          notifyError("Code Expired, Please Try Again");
-          action.state.tempUser = null;
-        }
-        notifyError("Something Went Wrong");
-      })
       .addCase(getContacts.fulfilled, (state, action) => {
         state.contacts = action.payload;
       })
@@ -245,7 +184,13 @@ const userSlice = createSlice({
         state.tempUser = action.payload;
       })
       .addCase(register.rejected, (state, action) => {
-        notifyError("Something Went wrong");
+        console.log(action.error);
+        
+        if(action.error.code === "auth/email-already-in-use"){
+          notifyError("Email Already Exists.");
+        }else{
+          notifyError("Something Went wrong");
+        }
       });
   },
 });

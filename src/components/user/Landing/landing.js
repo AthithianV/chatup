@@ -19,7 +19,7 @@ export default function AuthOption() {
           <button className="userButton">Register</button>
         </NavLink>
       </div>
-      <button
+      {/* <button
         className="userButton"
         onClick={() => {
           dispatch(
@@ -33,7 +33,7 @@ export default function AuthOption() {
         }}
       >
         Login as Guest
-      </button>
+      </button> */}
     </div>
   );
 }

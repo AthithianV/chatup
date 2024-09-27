@@ -1,56 +1,23 @@
-.upload {
-    padding: 10px;
-    margin: 15px;
-    border: 5px solid black;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.upload:hover {
-    border: 5px solid var(--theme);
-    color: var(--theme);
-}
-
-.uploadField {
-    height: 0;
-}
-
-.table {
+.formElement{
+    margin: 5px 0;
     display: flex;
-    align-items: flex-end;
-    font-size: 1.2rem;
-    font-weight: 500;
+    flex-direction: column;
+    width: 80%;
 }
 
-.table td{
+.formElement label{
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.formElement input{
     padding: 10px;
-}
-
-.table input {
-    padding: 5px;
-    font-size: 1.2rem;
-    border: none;
-    border-bottom: 3px solid var(--theme);
-    text-align: center;
-}
-
-.table input:focus{
-    outline: none;
-}
-
-.selected,
-.selected:hover {
-    color: #09B99D;
-    border: 3px solid #09B99D;
-}
-
-.code{
-    border: 2px solid var(--theme) !important;
-    max-width: 4rem;
-    text-align: center;
     border-radius: 5px;
+    border: 1px solid grey;
+    margin: 2px 0;
+    font-size: 1rem;
 }
 
-.m10{
-    margin: "10px";
+.formElement input:focus{
+    outline-color: var(--theme);
 }
