@@ -12,7 +12,10 @@ export default function AddConversation() {
   const { user, contacts } = useSelector(userSelector);
   const dispatch = useDispatch();
   const [contactsList, setContactList] = useState(contacts);
+  const [userList, setUserList] = useState([]);
   const inputRef = useRef();
+
+  const [newContact, setNewContact] = useState(false);
 
   useEffect(() => {
     setContactList(contacts);
@@ -26,7 +29,7 @@ export default function AddConversation() {
     <div className={styles.container}>
       <div className={styles.contacts}>
         <div className={styles.header}>
-          <h2>New Conversation</h2>
+          <h2>{newContact ? "Add New Contact" : "New Conversation"}</h2>
           <button
             className={styles.close}
             onClick={() => dispatch(userAction.switchDisplayContact())}
@@ -35,16 +38,37 @@ export default function AddConversation() {
           </button>
         </div>
 
-        <input
-          type="text"
-          ref={inputRef}
-          placeholder="Search for a contact"
-          onChange={(e) => {
-            setContactList(
-              contacts.filter((c) => c.name.includes(e.target.value))
-            );
-          }}
-        />
+        {!newContact ? (
+          <input
+            type="text"
+            ref={inputRef}
+            placeholder="Search for a contact"
+            onChange={(e) => {
+              setContactList(
+                contacts.filter((c) => c.name.includes(e.target.value))
+              );
+            }}
+          />
+        ) : (
+          <form className={styles.newContactForm}>
+            <input type="text" placeholder="Search for a User" />
+            <button type="submit">
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </button>
+          </form>
+        )}
+
+        {!newContact ? (
+          <button
+            className={styles.newContact}
+            onClick={() => setNewContact(true)}
+          >
+            <i className="fa-solid fa-plus"></i> New Contact
+          </button>
+        ) : (
+          <></>
+        )}
+
         <ul className={styles.list}>
           {contactsList.map((c, index) => (
             <li

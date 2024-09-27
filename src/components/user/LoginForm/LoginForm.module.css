@@ -1,25 +1,23 @@
-.code {
-    width: fit-content;
-    text-align: center;
-    border-bottom: 3px solid var(--theme);
-    padding: 5px;
-    font-size: 1.2rem;
+.formElement {
+    margin: 5px 0;
+    display: flex;
+    flex-direction: column;
+    width: 80%;
 }
 
-.input {
-    margin: 50px 10px;
-    font-size: 1.2rem;
-    text-align: center;
-    padding: 5px 5px 5px 10px;
-    border: none;
-    border-bottom: 3px solid var(--theme);
+.formElement label {
+    font-weight: 600;
+    font-size: 1rem;
 }
 
-.country {
-    width: 10rem;
+.formElement input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid grey;
+    margin: 2px 0;
+    font-size: 1rem;
 }
 
-.input:focus {
-    outline: none;
-    color: var(--theme);
+.formElement input:focus {
+    outline-color: var(--theme);
 }

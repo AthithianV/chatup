@@ -1,18 +1,17 @@
 import { Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { BeatLoader } from "react-spinners";
+import Cookies from "js-cookie";
+
 import styles from "./sidebar.module.css";
 import Conversation from "../conversation/conversation";
-import { useEffect, useRef, useState } from "react";
 import {
   getConversations,
   conversationSelector,
 } from "../../../redux/reducers/conversationReducer";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  userAction,
-  userSelector,
-} from "../../../redux/reducers/userReducer";
+import { userAction, userSelector } from "../../../redux/reducers/userReducer";
 import AddConversation from "../AddConversation/AddConversation";
-import { BeatLoader } from "react-spinners";
 
 export default function Sidebar() {
   const { user, displayContact } = useSelector(userSelector);
@@ -26,9 +25,9 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (!user) {
-      const data = JSON.parse(localStorage.getItem("chatup-user"));
-      if (data) {
-        dispatch(userAction.setUser(data));
+      const userId = Cookies.get("userId");
+      if (userId) {
+        dispatch(userAction.setUser(userId));
       } else {
         navigate("/user");
       }

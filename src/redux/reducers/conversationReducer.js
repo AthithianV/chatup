@@ -136,7 +136,7 @@ export const getConversations = createAsyncThunk(
   "conversation/get",
   async (user, { dispatch }) => {
     try {
-      const userRef = doc(db, "users", user.id);
+      const userRef = doc(db, "users", user);
       // Get userData.
       onSnapshot(userRef, async (doc) => {
         const userData = doc.data();

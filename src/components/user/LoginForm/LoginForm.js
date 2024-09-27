@@ -4,54 +4,61 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, userSelector } from "../../../redux/reducers/userReducer";
 
 import { useNavigate } from "react-router-dom";
-import SelectCountry from "../../General/selectCountry/selectCountry";
 import { BeatLoader } from "react-spinners";
 
 export default function LoginForm() {
   const dispatch = useDispatch();
-  const { loader, tempUser } = useSelector(userSelector);
+  const { loader, user } = useSelector(userSelector);
 
-  const [code, setCode] = useState(null);
-  const [phone, setPhone] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [password, setPassword] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (tempUser) {
-      navigate("/user/verify-code");
+    if (user) {
+      navigate("/");
     }
-  }, [navigate, tempUser]);
+  }, [navigate, user]);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (phone) {
-      dispatch(login({ code, phone }));
-    }
+  function handleSubmit() {
+    dispatch(login({ email, password }));
   }
 
   return (
-    <form className={`form center`} onSubmit={(e) => handleSubmit(e)}>
-      <h2 style={{ color: "var(--theme)" }}>Verify Your Phone Number</h2>
-      <h4 style={{ maxWidth: "60%", textAlign: "center" }}>
-        Chatup will sent you a SMS message to verify your phone number. you will
-        receive an SMS message for verification and standard rates apply.
-      </h4>
-      <SelectCountry setCode={setCode} />
-      {code && (
-        <div className={styles.inputs}>
-          <span className={styles.code}>{code}</span>
-          <input
-            className={`${styles.input} ${styles.country}`}
-            type="text"
-            placeholder="Phone Number"
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </div>
-      )}
-      {code && (
-        <button type="submit" id="login-button" className="userButton">
-          {loader ? <BeatLoader color={"black"} size={10} /> : "Next"}
-        </button>
-      )}
+    <form
+      className="form center"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+    >
+      <h2 className={styles.m10}>Login: </h2>
+
+      <div className={styles.formElement}>
+        <label htmlFor="email">Email: </label>
+        <input
+          onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          name="email"
+          id="email"
+          required
+        />
+      </div>
+
+      <div className={styles.formElement}>
+        <label htmlFor="password">Password: </label>
+        <input
+          onChange={(e) => setPassword(e.target.value)}
+          type="password"
+          name="password"
+          id="password"
+          required
+        />
+      </div>
+
+      <button className="userButton" type="submit" id="register-button">
+        {loader ? <BeatLoader size={10} color="black" /> : "Login"}
+      </button>
     </form>
   );
 }

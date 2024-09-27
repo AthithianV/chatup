@@ -1,14 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   createUserWithEmailAndPassword,
-  RecaptchaVerifier,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { auth, db } from "../../firebase/firebase";
 import {
   addDoc,
-  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -17,67 +14,18 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import Cookies from "js-cookie";
+
+import { auth, db } from "../../firebase/firebase";
 import notifyError from "../../util/notifyError";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 
 const INITIAL_STATE = {
   user: null,
-  tempUser: null,
   loader: false,
   displayContact: false,
   contacts: [],
 };
-
-export const addContact = createAsyncThunk("user/addContact", async () => {
-  const users = [
-    "Andre",
-    "Darren",
-    "David",
-    "Diana",
-    "Josh",
-    "Olivia",
-    "Parker",
-    "Robin",
-  ];
-  users.forEach(async (u) => {
-    await updateDoc(doc(db, "users", u), {
-      contacts: arrayUnion({
-        id: "Ig2eNx43ZEKpDrHOCsl2",
-        name: "Guest",
-        image:
-          "https://firebasestorage.googleapis.com/v0/b/chatap-b6d99.appspot.com/o/image%2FLotus.png?alt=media&token=17d635ba-4263-4fe4-b856-dffa9b01929c",
-      }),
-    });
-  });
-});
-
-export const login = createAsyncThunk("user/login", async ({ email, password }) => {
-  try {
-
-    const userCredentials = await signInWithEmailAndPassword(auth, {
-      email, password
-    })
-
-    const snapshot = await getDocs(
-      query(collection(db, "users"), where("email", "==", email))
-    );
-
-    let user;
-    snapshot.forEach((snap) => {
-      user = doc.data();
-    });
-
-    return {
-      name: user.name,
-      phone: user.phoneNumber,
-      code: user.countryCode,
-      image: user.image,
-    };
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-});
 
 export const register = createAsyncThunk("user/register", async (user) => {
   try {
@@ -86,7 +34,7 @@ export const register = createAsyncThunk("user/register", async (user) => {
     );
 
     if (!snapshot.empty) {
-      notifyError("The Phone number is Alreay Registerd");
+      notifyError("Username Alreay Exists!");
       return null;
     }
 
@@ -100,37 +48,74 @@ export const register = createAsyncThunk("user/register", async (user) => {
     const userCredentials = await createUserWithEmailAndPassword(
       auth,
       user.email,
-      user.password,
+      user.password
     );
 
     let userData = {
       uid: userCredentials.user.uid,
-      name: user.name,
-      countryCode: user.code,
-      phoneNumber: user.phone,
+      username: user.username,
+      email: user.email,
       image: null,
       conversations: [],
       contacts: [],
       lastSeen: Date.now(),
     };
 
+    console.log(userData);
+
     const docRef = await addDoc(collection(db, "users"), userData);
     await updateDoc(docRef, { id: docRef.id });
     userData.id = docRef.id;
 
     return true;
-
   } catch (error) {
     console.log(error);
     throw error;
   }
 });
 
+export const login = createAsyncThunk(
+  "user/login",
+  async ({ email, password }) => {
+    try {
+      const userCredentials = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const snapshot = await getDocs(
+        query(collection(db, "users"), where("email", "==", email))
+      );
+
+      let user;
+      snapshot.forEach((snap) => (user = snap.data()));
+
+      Cookies.set("authToken", userCredentials.user.accessToken, {
+        expires: 7,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+      });
+
+      Cookies.set("userId", user.id, {
+        expires: 7,
+        secure: true,
+        sameSite: "Strict",
+        path: "/",
+      });
+
+      return user.id;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
 
 export const logout = createAsyncThunk("user/signout", async () => {
   try {
     await signOut(auth);
-    localStorage.removeItem("chatup-user");
+    Cookies.remove("authToken");
+    Cookies.remove("userId");
   } catch (error) {
     console.log(error);
     throw error;
@@ -139,7 +124,7 @@ export const logout = createAsyncThunk("user/signout", async () => {
 
 export const getContacts = createAsyncThunk("user/getContent", async (user) => {
   try {
-    const snapshot = await getDoc(doc(db, "users", user.id));
+    const snapshot = await getDoc(doc(db, "users", user));
     const contacts = snapshot.data().contacts;
 
     return contacts;
@@ -165,14 +150,20 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(login.fulfilled, (state, action) => {
-        state.tempUser = action.payload;
+        state.user = action.payload;
         state.loader = false;
       })
       .addCase(login.pending, (state, action) => {
         state.loader = true;
       })
       .addCase(login.rejected, (state, action) => {
-        notifyError("Something Went Wrong");
+        console.log(action.error);
+        if (action.error.code === "auth/invalid-credential") {
+          notifyError("Wrong Email/Password");
+        } else {
+          notifyError("Something Went Wrong");
+        }
+        state.loader = false;
       })
       .addCase(getContacts.fulfilled, (state, action) => {
         state.contacts = action.payload;
@@ -182,15 +173,18 @@ const userSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.tempUser = action.payload;
+        state.loader = false;
+      })
+      .addCase(register.pending, (state, action) => {
+        state.loader = true;
       })
       .addCase(register.rejected, (state, action) => {
-        console.log(action.error);
-        
-        if(action.error.code === "auth/email-already-in-use"){
+        if (action.error.code === "auth/email-already-in-use") {
           notifyError("Email Already Exists.");
-        }else{
+        } else {
           notifyError("Something Went wrong");
         }
+        state.loader = false;
       });
   },
 });
